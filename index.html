@@ -101,13 +101,28 @@ h2{font-size:15px;font-weight:600;margin:26px 2px 10px}
 .qr{background:#fff;border-radius:16px;padding:14px;width:min(240px,70vw);margin:10px auto}.qr svg{display:block;width:100%;height:auto}
 .hist{margin-top:8px}.hrow{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--line);font-size:14px}
 .hrow .x{width:36px;height:36px;border:0;background:none;color:var(--mute);font-size:18px;cursor:pointer}
+
+.hl{display:flex;align-items:center;gap:6px}
+.burger{width:44px;height:44px;margin-left:-8px;border:0;background:none;border-radius:12px;cursor:pointer;display:grid;place-items:center;color:var(--ink)}
+.burger svg{width:22px;height:22px}
+.drawer{position:fixed;top:0;bottom:0;left:0;width:min(320px,84vw);background:var(--card);z-index:12;transform:translateX(-102%);transition:transform .25s;display:flex;flex-direction:column;overflow-y:auto;padding-bottom:env(safe-area-inset-bottom)}
+#dlayer.open .drawer{transform:none}#dlayer .scrim{z-index:11}
+.who{display:flex;gap:12px;align-items:center;padding:28px 20px 20px;border-bottom:1px solid var(--line)}
+.av{width:52px;height:52px;border-radius:50%;background:var(--acc);color:#fff;display:grid;place-items:center;font:600 20px Geist,sans-serif;flex:none}
+.av.empty{background:var(--line);color:var(--mute)}
+.who b{display:block;font-size:17px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mi{display:flex;align-items:center;gap:14px;width:100%;min-height:52px;padding:0 20px;border:0;background:none;color:var(--ink);font:500 16px Geist,sans-serif;text-align:left;cursor:pointer}
+.mi:active,.mi.on{background:var(--bg)}
+.mi svg{width:20px;height:20px;flex:none;color:var(--mute)}
+.msec{font-size:12px;color:var(--mute);padding:16px 20px 6px}
+.mfoot{margin-top:auto;padding:16px 20px;font-size:13px;color:var(--mute)}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
 <div class="wrap" id="app">
   <header>
-    <h1>Paisa Tracker</h1>
+    <div class="hl"><button class="burger" id="burger" aria-label="Open menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button><h1>Paisa Tracker</h1></div>
     <div class="mon"><button id="prev" aria-label="Previous month">‹</button><span id="mlabel"></span><button id="next" aria-label="Next month">›</button></div>
   </header>
 
@@ -141,7 +156,7 @@ h2{font-size:15px;font-weight:600;margin:26px 2px 10px}
     </section>
     <div id="flist"></div>
   </div>
-  <div class="foot"><span id="sync">Loading…</span><span style="display:flex;gap:8px;flex-wrap:wrap"><button class="ghost" id="bak">Backup</button><button class="ghost" id="res">Restore</button><button class="ghost" id="copy">CSV</button></span></div>
+  <div hidden><span id="sync"></span><button id="bak"></button><button id="res"></button><button id="copy"></button></div>
 </div>
 
 <button class="fab" id="add">+ Add</button>
@@ -164,6 +179,21 @@ h2{font-size:15px;font-weight:600;margin:26px 2px 10px}
 </div>
 
 <div id="rlayer"><div class="scrim" id="rscrim"></div><div class="sheet"><div class="grab"></div><h2 style="margin-top:4px">Restore backup</h2><p class="lbl">Paste the backup text you saved (WhatsApp, Notes or Drive) here.</p><textarea id="rtxt" class="search" style="height:140px;padding:12px;resize:vertical" aria-label="Backup text"></textarea><div class="err" id="rerr"></div><div class="acts"><button type="button" class="del" id="rcancel">Cancel</button><button type="button" class="save" id="rok">Restore</button></div></div></div>
+<div id="dlayer"><div class="scrim" id="dscrim"></div><nav class="drawer" aria-label="Menu">
+  <div class="who"><div class="av empty" id="dav">?</div><div style="min-width:0"><b id="dname">Not signed in</b><button class="link" id="dsign" style="padding:2px 0">Sign in</button></div></div>
+  <div class="msec">Track</div>
+  <button class="mi" data-go="money"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18v12H3zM3 11h18M7 15h4"/></svg>Expenses</button>
+  <button class="mi" data-go="funds"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M17 7.5C17 5.6 14.8 4.5 12 4.5S7 5.6 7 7.5s2.2 3 5 3.5 5 1.6 5 3.5-2.2 3-5 3-5-1.1-5-3"/></svg>Funds</button>
+  <button class="mi" data-go="budget"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Monthly budget</button>
+  <div class="msec">Data</div>
+  <button class="mi" data-go="backup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg>Backup data</button>
+  <button class="mi" data-go="restore"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V9M7 14l5-5 5 5M4 3h16"/></svg>Restore data</button>
+  <button class="mi" data-go="csv"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6zM9 13h7M9 17h7"/></svg>Export as CSV</button>
+  <div class="msec">Account</div>
+  <button class="mi" data-go="profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c1-4 4.5-6 8-6s7 2 8 6"/></svg><span id="dprof">Sign in</span></button>
+  <div class="mfoot">Paisa Tracker · data stays on this phone</div>
+</nav></div>
+<div id="player"><div class="scrim" id="pscrim"></div><div class="sheet" id="psheet"></div></div>
 <div id="flayer"><div class="scrim" id="fscrim"></div><div class="sheet" id="fsheet"></div></div>
 <div class="toast" id="toast"><span id="tmsg"></span><button id="undo">Undo</button></div>
 
@@ -2473,12 +2503,12 @@ const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'
 const inr=n=>'₹'+Math.round(n).toLocaleString('en-IN');
 const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
 const LS='paisa-tracker-v1';
-let S={txns:[],budget:0,funds:[],fx:[],upi:{}};
+let S={txns:[],budget:0,funds:[],fx:[],upi:{},profile:null};
 let view=today().slice(0,7);
 let editing=null,type='e',cat='Food',lastDeleted=null,toastT=null;
 let dbDoc=null,writing=false,queued=false,remoteReady=false;
 
-function loadLocal(){try{const r=localStorage.getItem(LS);if(r){const j=JSON.parse(r);if(Array.isArray(j.txns))S={txns:j.txns,budget:+j.budget||0,funds:Array.isArray(j.funds)?j.funds:[],fx:Array.isArray(j.fx)?j.fx:[],upi:j.upi&&typeof j.upi==='object'?j.upi:{}}}}catch(e){}}
+function loadLocal(){try{const r=localStorage.getItem(LS);if(r){const j=JSON.parse(r);if(Array.isArray(j.txns))S={txns:j.txns,budget:+j.budget||0,funds:Array.isArray(j.funds)?j.funds:[],fx:Array.isArray(j.fx)?j.fx:[],upi:j.upi&&typeof j.upi==='object'?j.upi:{},profile:j.profile&&j.profile.name?j.profile:null}}}catch(e){}}
 function saveLocal(){try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}}
 
 function persist(){saveLocal()}
@@ -2584,7 +2614,7 @@ $('copy').onclick=()=>{
 const AND=window.Android||null;
 function shareText(txt,label){if(AND&&AND.share){AND.share(txt);return true}
   return navigator.clipboard?navigator.clipboard.writeText(txt).then(()=>{toast(label+' copied');return true},()=>{toast('Could not copy');return false}):false}
-$('bak').onclick=()=>shareText(JSON.stringify({app:'paisa-tracker',v:2,txns:S.txns,budget:S.budget,funds:S.funds,fx:S.fx,upi:S.upi}),'Backup');
+$('bak').onclick=()=>shareText(JSON.stringify({app:'paisa-tracker',v:2,txns:S.txns,budget:S.budget,funds:S.funds,fx:S.fx,upi:S.upi,profile:S.profile}),'Backup');
 $('res').onclick=()=>{$('rlayer').classList.add('open');$('rtxt').value='';$('rerr').textContent='';setTimeout(()=>$('rtxt').focus(),200)};
 $('rcancel').onclick=$('rscrim').onclick=()=>$('rlayer').classList.remove('open');
 $('rok').onclick=()=>{try{const j=JSON.parse($('rtxt').value.trim());if(!Array.isArray(j.txns))throw 0;
@@ -2592,6 +2622,7 @@ $('rok').onclick=()=>{try{const j=JSON.parse($('rtxt').value.trim());if(!Array.i
   const ids=new Set(S.txns.map(t=>t.id));ok.forEach(t=>{if(!ids.has(t.id))S.txns.push(t)});if(+j.budget>0)S.budget=Math.round(+j.budget);
   let nf=0;if(Array.isArray(j.funds)){const fi=new Set(S.funds.map(f=>f.id));j.funds.forEach(f=>{if(f&&typeof f.id==='string'&&!fi.has(f.id)&&f.name){S.funds.push({id:f.id,name:String(f.name).slice(0,30),target:Math.max(0,+f.target||0),by:/^\d{4}-\d{2}$/.test(f.by)?f.by:'',ts:+f.ts||0});nf++}})}
   if(Array.isArray(j.fx)){const xi=new Set(S.fx.map(x=>x.id));j.fx.forEach(x=>{if(x&&typeof x.id==='string'&&!xi.has(x.id)&&isFinite(+x.a)&&+x.a!==0)S.fx.push({id:x.id,f:String(x.f),a:+x.a,d:/^\d{4}-\d{2}-\d{2}$/.test(x.d)?x.d:today(),n:String(x.n||'').slice(0,60),ts:+x.ts||0})})}
+  if(j.profile&&j.profile.name&&!S.profile)S.profile={name:String(j.profile.name).slice(0,40),email:String(j.profile.email||'').slice(0,80),phone:String(j.profile.phone||'').slice(0,20)};
   if(j.upi&&j.upi.id&&!S.upi.id)S.upi={id:String(j.upi.id).slice(0,60),name:String(j.upi.name||'').slice(0,40)};
   persist();render();$('rlayer').classList.remove('open');toast(ok.length+' entries restored')}catch(e){$('rerr').textContent='This is not a valid backup'}};
 // ---------- Funds ----------
@@ -2685,7 +2716,41 @@ let undoFund=null;
 {let v='money';try{v=localStorage.getItem(LS+'-view')||'money'}catch(e){}setView(v==='funds'?'funds':'money')}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeF()});
 window.paisaUpdate=()=>{$('tmsg').textContent='New update available';const u=$('undo');u.hidden=false;u.textContent='Update now';$('toast').classList.add('show');clearTimeout(toastT)};
-loadLocal();render();renderFunds();setSync('Saved on this phone · Back up regularly');
+// ---------- Menu & profile ----------
+const openD=()=>{renderWho();document.querySelectorAll('.mi[data-go]').forEach(b=>b.classList.toggle('on',b.dataset.go===curView));$('dlayer').classList.add('open')};
+const closeD=()=>$('dlayer').classList.remove('open');
+$('burger').onclick=openD;$('dscrim').onclick=closeD;
+function renderWho(){const p=S.profile;const av=$('dav');
+  if(p){av.classList.remove('empty');av.textContent=p.name.split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();$('dname').textContent=p.name;$('dsign').textContent='Edit profile';$('dprof').textContent='Profile'}
+  else{av.classList.add('empty');av.textContent='?';$('dname').textContent='Not signed in';$('dsign').textContent='Sign in';$('dprof').textContent='Sign in'}}
+$('dsign').onclick=()=>{closeD();openProfile()};
+document.querySelector('.drawer').addEventListener('click',e=>{const b=e.target.closest('.mi');if(!b)return;const g=b.dataset.go;closeD();
+  if(g==='money'||g==='funds')setView(g);
+  else if(g==='budget'){setView('money');window.scrollTo({top:0,behavior:'smooth'});setTimeout(()=>{if(!budIn)$('setb').click()},250)}
+  else if(g==='backup')$('bak').click();else if(g==='restore')$('res').click();else if(g==='csv')$('copy').click();
+  else if(g==='profile')openProfile()});
+const closeP=()=>$('player').classList.remove('open');$('pscrim').onclick=closeP;
+let soArm=false;
+function openProfile(){const p=S.profile||{};soArm=false;
+  $('psheet').innerHTML=`<div class="grab"></div><h2 style="margin-top:4px">${S.profile?'Your profile':'Sign in'}</h2>
+  <p class="lbl" style="margin-top:0">Your details are saved only on this phone.</p>
+  <label class="f">Name<input id="pn" maxlength="40" autocomplete="name" placeholder="Your name" value="${esc(p.name||'')}"></label>
+  <label class="f" style="margin-top:10px">Email (optional)<input id="pe" type="email" maxlength="80" autocomplete="email" placeholder="you@example.com" value="${esc(p.email||'')}"></label>
+  <label class="f" style="margin-top:10px">Phone (optional)<input id="pp" type="tel" maxlength="20" autocomplete="tel" placeholder="+91" value="${esc(p.phone||'')}"></label>
+  <div class="err" id="perr"></div>
+  <div class="acts">${S.profile?'<button type="button" class="del" id="pout">Sign out</button>':'<button type="button" class="del" id="pcan">Cancel</button>'}<button type="button" class="save" id="psave">${S.profile?'Save':'Sign in'}</button></div>`;
+  $('player').classList.add('open');setTimeout(()=>{const e=$('pn');e&&!S.profile&&e.focus()},250);
+  if($('pcan'))$('pcan').onclick=closeP;
+  if($('pout'))$('pout').onclick=()=>{if(!soArm){soArm=true;$('pout').textContent='Tap again to sign out';return}S.profile=null;persist();renderWho();closeP();toast('Signed out')};
+  $('psave').onclick=()=>{const n=$('pn').value.trim(),em=$('pe').value.trim(),ph=$('pp').value.trim();
+    if(!n){$('perr').textContent='Enter your name';return}
+    if(em&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){$('perr').textContent='Enter a valid email';return}
+    if(ph&&!/^[+\d][\d\s-]{6,18}$/.test(ph)){$('perr').textContent='Enter a valid phone number';return}
+    const was=!!S.profile;S.profile={name:n.slice(0,40),email:em.slice(0,80),phone:ph.slice(0,20)};
+    if(!S.upi.name)S.upi.name=S.profile.name;persist();renderWho();closeP();toast(was?'Profile saved':'Welcome, '+n.split(' ')[0])}}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeD();closeP()}});
+loadLocal();render();renderFunds();renderWho();
+
 
 }
 </script>

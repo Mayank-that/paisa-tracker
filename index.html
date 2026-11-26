@@ -111,33 +111,33 @@ h2{font-size:15px;font-weight:600;margin:26px 2px 10px}
     <div class="mon"><button id="prev" aria-label="Previous month">‹</button><span id="mlabel"></span><button id="next" aria-label="Next month">›</button></div>
   </header>
 
-  <nav class="tabs" id="tabs"><button data-v="money" class="on">Kharcha</button><button data-v="funds">Funds</button></nav>
+  <nav class="tabs" id="tabs"><button data-v="money" class="on">Expenses</button><button data-v="funds">Funds</button></nav>
   <div id="vMoney">
   <section class="gauge" id="gauge">
-    <div class="lbl">Bacha hua is mahine</div>
+    <div class="lbl">Left this month</div>
     <div class="bal num" id="bal">₹0</div>
     <div class="split">
-      <div><span class="lbl">Aaya (income)</span><b class="num inc" id="tin">₹0</b></div>
-      <div><span class="lbl">Gaya (expense)</span><b class="num" id="tex">₹0</b></div>
+      <div><span class="lbl">Income</span><b class="num inc" id="tin">₹0</b></div>
+      <div><span class="lbl">Expenses</span><b class="num" id="tex">₹0</b></div>
     </div>
     <div class="scale" aria-hidden="true"><div class="ticks"></div><div class="rail"><div class="fill" id="fill"></div></div><div class="ptr" id="ptr"></div></div>
     <div class="ends num"><span>₹0</span><span id="bmax">—</span></div>
-    <div class="bud"><span id="btext" class="lbl">Monthly budget set nahi hai</span><button class="link" id="setb">Set budget</button></div>
+    <div class="bud"><span id="btext" class="lbl">No monthly budget set</span><button class="link" id="setb">Set budget</button></div>
   </section>
 
-  <h2>Kahan gaya paisa</h2>
+  <h2>Where your money went</h2>
   <div class="cats" id="cats"></div>
 
   <h2>Transactions</h2>
-  <input class="search" id="q" type="search" placeholder="Search note ya category…" aria-label="Search">
+  <input class="search" id="q" type="search" placeholder="Search notes or categories…" aria-label="Search">
   <div id="txs"></div>
 
   </div>
   <div id="vFunds" hidden>
     <section class="fsum">
-      <div class="lbl">Sab funds mein jama</div>
+      <div class="lbl">Saved across all funds</div>
       <div class="bal num" id="ftotal">₹0</div>
-      <div class="lbl" id="fsub">Koi fund nahi bana abhi</div>
+      <div class="lbl" id="fsub">No funds yet</div>
     </section>
     <div id="flist"></div>
   </div>
@@ -158,12 +158,12 @@ h2{font-size:15px;font-weight:600;margin:26px 2px 10px}
       <label class="f">Date<input id="date" type="date"></label>
       <label class="f">Mode<select id="mode"><option>UPI</option><option>Cash</option><option>Card</option><option>Bank</option></select></label>
     </div>
-    <label class="f">Note (optional)<input id="note" maxlength="60" placeholder="e.g. chai with friends"></label>
+    <label class="f">Note (optional)<input id="note" maxlength="60" placeholder="e.g. coffee with friends"></label>
     <div class="acts"><button type="button" class="del" id="delb" hidden>Delete</button><button class="save" id="saveb">Save</button></div>
   </form>
 </div>
 
-<div id="rlayer"><div class="scrim" id="rscrim"></div><div class="sheet"><div class="grab"></div><h2 style="margin-top:4px">Backup restore karo</h2><p class="lbl">Jo backup text save kiya tha (WhatsApp / Notes / Drive mein) usse yahan paste karo.</p><textarea id="rtxt" class="search" style="height:140px;padding:12px;resize:vertical" aria-label="Backup text"></textarea><div class="err" id="rerr"></div><div class="acts"><button type="button" class="del" id="rcancel">Cancel</button><button type="button" class="save" id="rok">Restore</button></div></div></div>
+<div id="rlayer"><div class="scrim" id="rscrim"></div><div class="sheet"><div class="grab"></div><h2 style="margin-top:4px">Restore backup</h2><p class="lbl">Paste the backup text you saved (WhatsApp, Notes or Drive) here.</p><textarea id="rtxt" class="search" style="height:140px;padding:12px;resize:vertical" aria-label="Backup text"></textarea><div class="err" id="rerr"></div><div class="acts"><button type="button" class="del" id="rcancel">Cancel</button><button type="button" class="save" id="rok">Restore</button></div></div></div>
 <div id="flayer"><div class="scrim" id="fscrim"></div><div class="sheet" id="fsheet"></div></div>
 <div class="toast" id="toast"><span id="tmsg"></span><button id="undo">Undo</button></div>
 
@@ -2487,8 +2487,8 @@ function push(){clearTimeout(pushT);pushT=setTimeout(doPush,500)}
 async function doPush(){
   if(writing){queued=true;return}
   writing=true;
-  try{await dbDoc.set({txns:S.txns,budget:S.budget,updated:Date.now()});setSync('Saved to your account — har device pe milega')}
-  catch(e){setSync(e&&e.code==='quota_exceeded'?'Storage full — kuch purane entries delete karo':'Is device pe saved (account sync abhi nahi hua)')}
+  try{await dbDoc.set({txns:S.txns,budget:S.budget,updated:Date.now()});setSync('Saved to your account')}
+  catch(e){setSync(e&&e.code==='quota_exceeded'?'Storage full — delete some old entries':'Saved on this device')}
   writing=false;if(queued){queued=false;doPush()}
 }
 function setSync(t){$('sync').textContent=t}
@@ -2509,16 +2509,16 @@ function render(){
   $('fill').style.width=p+'%';$('ptr').style.left=p+'%';
   $('bmax').textContent=B?inr(B):inr(exp);
   $('gauge').classList.toggle('over',B>0&&exp>B);
-  if(!budIn)$('btext').textContent=B?(exp>B?inr(exp-B)+' budget se zyada kharch':inr(B-exp)+' aur kharch kar sakte ho'):'Monthly budget set nahi hai';
+  if(!budIn)$('btext').textContent=B?(exp>B?inr(exp-B)+' over budget':inr(B-exp)+' left to spend'):'No monthly budget set';
   if(!budIn)$('setb').textContent=B?'Change budget':'Set budget';
 
   const by={};mt.filter(t=>t.t==='e').forEach(t=>by[t.c]=(by[t.c]||0)+t.a);
   const rows=Object.entries(by).sort((a,b)=>b[1]-a[1]);
-  $('cats').innerHTML=rows.length?rows.map(([c,v])=>`<div class="cat"><span>${esc(c)}</span><div class="bar"><i style="width:${(v/rows[0][1]*100).toFixed(1)}%"></i></div><span class="num">${inr(v)}</span></div>`).join(''):'<div class="lbl">Is mahine abhi koi kharcha nahi.</div>';
+  $('cats').innerHTML=rows.length?rows.map(([c,v])=>`<div class="cat"><span>${esc(c)}</span><div class="bar"><i style="width:${(v/rows[0][1]*100).toFixed(1)}%"></i></div><span class="num">${inr(v)}</span></div>`).join(''):'<div class="lbl">No expenses this month yet.</div>';
 
   const q=$('q').value.trim().toLowerCase();
   const list=mt.filter(t=>!q||(t.n||'').toLowerCase().includes(q)||t.c.toLowerCase().includes(q)).sort((a,b)=>b.d.localeCompare(a.d)||b.ts-a.ts);
-  if(!list.length){$('txs').innerHTML=`<div class="list"><div class="empty">${q?'Kuch nahi mila.':'Koi entry nahi. Neeche <b>+ Add</b> dabao aur pehla kharcha likho.'}</div></div>`;return}
+  if(!list.length){$('txs').innerHTML=`<div class="list"><div class="empty">${q?'Nothing found.':'No entries yet. Tap <b>+ Add</b> below to log your first expense.'}</div></div>`;return}
   const days={};list.forEach(t=>(days[t.d]=days[t.d]||[]).push(t));
   $('txs').innerHTML=Object.entries(days).map(([d,ts])=>{
     const net=ts.reduce((a,t)=>a+(t.t==='i'?t.a:-t.a),0);
@@ -2546,15 +2546,15 @@ function toast(msg,undo){$('undo').textContent='Undo';$('tmsg').textContent=msg;
 $('sheet').addEventListener('submit',e=>{
   e.preventDefault();
   const a=parseFloat($('amt').value.replace(/,/g,''));
-  if(!(a>0)){$('err').textContent='Amount daalo (0 se zyada)';return}
-  if(a>1e9){$('err').textContent='Amount bahut bada hai';return}
+  if(!(a>0)){$('err').textContent='Enter an amount above 0';return}
+  if(a>1e9){$('err').textContent='Amount is too large';return}
   const d=$('date').value||today();
   const rec={id:editing?editing.id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),t:type,a:Math.round(a*100)/100,c:cat,n:$('note').value.trim().slice(0,60),d,m:$('mode').value,ts:editing?editing.ts:Date.now()};
   if(editing)S.txns=S.txns.map(t=>t.id===rec.id?rec:t);else S.txns.push(rec);
-  view=d.slice(0,7);closeSheet();render();persist();toast(editing?'Update ho gaya':(type==='e'?'Kharcha':'Income')+' add ho gaya: '+inr(rec.a));
+  view=d.slice(0,7);closeSheet();render();persist();toast(editing?'Updated':(type==='e'?'Expense':'Income')+' added: '+inr(rec.a));
 });
-$('delb').onclick=()=>{if(!editing)return;undoFund=null;lastDeleted=editing;S.txns=S.txns.filter(t=>t.id!==editing.id);closeSheet();render();persist();toast('Entry delete ho gayi',true)};
-$('undo').onclick=()=>{if($('undo').textContent==='Update karo'){AND&&AND.reload&&AND.reload();return}if($('undo').textContent!=='Undo')return;if(lastDeleted){S.txns.push(lastDeleted);lastDeleted=null;render();persist();toast('Wapas aa gayi')}};
+$('delb').onclick=()=>{if(!editing)return;undoFund=null;lastDeleted=editing;S.txns=S.txns.filter(t=>t.id!==editing.id);closeSheet();render();persist();toast('Entry deleted',true)};
+$('undo').onclick=()=>{if($('undo').textContent==='Update now'){AND&&AND.reload&&AND.reload();return}if($('undo').textContent!=='Undo')return;if(lastDeleted){S.txns.push(lastDeleted);lastDeleted=null;render();persist();toast('Restored')}};
 $('seg').onclick=e=>{const b=e.target.closest('button');if(b)setType(b.dataset.t)};
 $('chips').onclick=e=>{const b=e.target.closest('.chip');if(b){cat=b.dataset.c;drawChips()}};
 $('txs').onclick=e=>{const b=e.target.closest('.tx');if(b){const t=S.txns.find(x=>x.id===b.dataset.id);if(t)openSheet(t)}};
@@ -2583,7 +2583,7 @@ $('copy').onclick=()=>{
 // Backup / restore (APK version)
 const AND=window.Android||null;
 function shareText(txt,label){if(AND&&AND.share){AND.share(txt);return true}
-  return navigator.clipboard?navigator.clipboard.writeText(txt).then(()=>{toast(label+' copy ho gaya');return true},()=>{toast('Copy nahi ho paya');return false}):false}
+  return navigator.clipboard?navigator.clipboard.writeText(txt).then(()=>{toast(label+' copied');return true},()=>{toast('Could not copy');return false}):false}
 $('bak').onclick=()=>shareText(JSON.stringify({app:'paisa-tracker',v:2,txns:S.txns,budget:S.budget,funds:S.funds,fx:S.fx,upi:S.upi}),'Backup');
 $('res').onclick=()=>{$('rlayer').classList.add('open');$('rtxt').value='';$('rerr').textContent='';setTimeout(()=>$('rtxt').focus(),200)};
 $('rcancel').onclick=$('rscrim').onclick=()=>$('rlayer').classList.remove('open');
@@ -2593,7 +2593,7 @@ $('rok').onclick=()=>{try{const j=JSON.parse($('rtxt').value.trim());if(!Array.i
   let nf=0;if(Array.isArray(j.funds)){const fi=new Set(S.funds.map(f=>f.id));j.funds.forEach(f=>{if(f&&typeof f.id==='string'&&!fi.has(f.id)&&f.name){S.funds.push({id:f.id,name:String(f.name).slice(0,30),target:Math.max(0,+f.target||0),by:/^\d{4}-\d{2}$/.test(f.by)?f.by:'',ts:+f.ts||0});nf++}})}
   if(Array.isArray(j.fx)){const xi=new Set(S.fx.map(x=>x.id));j.fx.forEach(x=>{if(x&&typeof x.id==='string'&&!xi.has(x.id)&&isFinite(+x.a)&&+x.a!==0)S.fx.push({id:x.id,f:String(x.f),a:+x.a,d:/^\d{4}-\d{2}-\d{2}$/.test(x.d)?x.d:today(),n:String(x.n||'').slice(0,60),ts:+x.ts||0})})}
   if(j.upi&&j.upi.id&&!S.upi.id)S.upi={id:String(j.upi.id).slice(0,60),name:String(j.upi.name||'').slice(0,40)};
-  persist();render();$('rlayer').classList.remove('open');toast(ok.length+' entries restore ho gayi')}catch(e){$('rerr').textContent='Ye backup text sahi nahi lag raha'}};
+  persist();render();$('rlayer').classList.remove('open');toast(ok.length+' entries restored')}catch(e){$('rerr').textContent='This is not a valid backup'}};
 // ---------- Funds ----------
 let curView='money',openF=null,fmode='',delArm=false;
 const fSaved=id=>S.fx.filter(x=>x.f===id).reduce((a,x)=>a+x.a,0);
@@ -2603,12 +2603,12 @@ function setView(v){curView=v;document.querySelectorAll('#tabs button').forEach(
   $('add').textContent=v==='funds'?'+ New fund':'+ Add';try{localStorage.setItem(LS+'-view',v)}catch(e){}if(v==='funds')renderFunds()}
 $('tabs').onclick=e=>{const b=e.target.closest('button');if(b)setView(b.dataset.v)};
 function monthsLeft(by){if(!by)return 0;const [y,m]=by.split('-').map(Number);const n=new Date();return (y-n.getFullYear())*12+(m-1-n.getMonth())+1}
-function fundLine(f,s){if(!f.target)return inr(s)+' jama';if(s>=f.target)return 'Target pura ho gaya!';
-  const left=f.target-s,ml=monthsLeft(f.by);return inr(left)+' aur chahiye'+(ml>0?' · '+inr(Math.ceil(left/ml))+'/mahina':'')}
+function fundLine(f,s){if(!f.target)return inr(s)+' saved';if(s>=f.target)return 'Goal reached!';
+  const left=f.target-s,ml=monthsLeft(f.by);return inr(left)+' to go'+(ml>0?' · '+inr(Math.ceil(left/ml))+'/month':'')}
 function renderFunds(){
   const tot=S.funds.reduce((a,f)=>a+fSaved(f.id),0);$('ftotal').textContent=inr(tot);
-  $('fsub').textContent=S.funds.length?S.funds.length+(S.funds.length>1?' funds':' fund'):'Koi fund nahi bana abhi';
-  if(!S.funds.length){$('flist').innerHTML='<div class="list" style="margin-top:12px"><div class="empty">Bike, laptop, trip — kisi bhi cheez ke liye fund banao.<br>Neeche <b>+ New fund</b> dabao.</div></div>';return}
+  $('fsub').textContent=S.funds.length?S.funds.length+(S.funds.length>1?' funds':' fund'):'No funds yet';
+  if(!S.funds.length){$('flist').innerHTML='<div class="list" style="margin-top:12px"><div class="empty">Save for a bike, a laptop, a trip — anything.<br>Tap <b>+ New fund</b> below.</div></div>';return}
   $('flist').innerHTML=S.funds.slice().sort((a,b)=>a.ts-b.ts).map(f=>{const s=fSaved(f.id),p=f.target?Math.min(s/f.target*100,100):0;
     return `<button class="fcard" data-f="${esc(f.id)}"><div class="top"><span class="nm">${esc(f.name)}</span><span class="num">${f.target?Math.floor(p)+'%':''}</span></div>
     ${f.target?`<div class="pbar${s>=f.target?' done':''}"><i style="width:${p.toFixed(1)}%"></i></div>`:''}
@@ -2619,73 +2619,73 @@ function openLayer(){$('flayer').classList.add('open')}
 function closeF(){$('flayer').classList.remove('open');openF=null;fmode='';delArm=false}
 $('fscrim').onclick=closeF;
 function openFundForm(f){openF=f?f.id:null;fmode='form';
-  $('fsheet').innerHTML=`<div class="grab"></div><h2 style="margin-top:4px">${f?'Fund edit karo':'Naya fund'}</h2>
-  <label class="f">Fund ka naam<input id="fn" maxlength="30" placeholder="e.g. Bike Fund" value="${f?esc(f.name):''}"></label>
+  $('fsheet').innerHTML=`<div class="grab"></div><h2 style="margin-top:4px">${f?'Edit fund':'New fund'}</h2>
+  <label class="f">Fund name<input id="fn" maxlength="30" placeholder="e.g. Bike Fund" value="${f?esc(f.name):''}"></label>
   <div class="row" style="margin-top:10px"><label class="f">Target ₹ (optional)<input id="ft" inputmode="numeric" placeholder="80000" value="${f&&f.target?f.target:''}"></label>
-  <label class="f">Kab tak (optional)<input id="fb" type="month" value="${f&&f.by?esc(f.by):''}"></label></div>
-  <div class="err" id="ferr"></div><div class="acts"><button type="button" class="del" id="fcancel">Cancel</button><button type="button" class="save" id="fsave">${f?'Update':'Fund banao'}</button></div>`;
+  <label class="f">Target date (optional)<input id="fb" type="month" value="${f&&f.by?esc(f.by):''}"></label></div>
+  <div class="err" id="ferr"></div><div class="acts"><button type="button" class="del" id="fcancel">Cancel</button><button type="button" class="save" id="fsave">${f?'Update':'Create fund'}</button></div>`;
   openLayer();setTimeout(()=>{const e=$('fn');e&&e.focus()},250);
   $('fcancel').onclick=()=>f?openFund(f.id):closeF();
-  $('fsave').onclick=()=>{const n=$('fn').value.trim().slice(0,30);if(!n){$('ferr').textContent='Fund ka naam daalo';return}
+  $('fsave').onclick=()=>{const n=$('fn').value.trim().slice(0,30);if(!n){$('ferr').textContent='Enter a fund name';return}
     const t=Math.round(parseFloat(($('ft').value||'').replace(/,/g,''))||0);const by=$('fb').value||'';
-    if(t<0||t>1e9){$('ferr').textContent='Target sahi daalo';return}
-    if(f){Object.assign(f,{name:n,target:t,by});persist();renderFunds();openFund(f.id);toast('Fund update ho gaya')}
-    else{const nf={id:uid(),name:n,target:t,by,ts:Date.now()};S.funds.push(nf);persist();renderFunds();openFund(nf.id);toast(n+' ban gaya')}}
+    if(t<0||t>1e9){$('ferr').textContent='Enter a valid target';return}
+    if(f){Object.assign(f,{name:n,target:t,by});persist();renderFunds();openFund(f.id);toast('Fund updated')}
+    else{const nf={id:uid(),name:n,target:t,by,ts:Date.now()};S.funds.push(nf);persist();renderFunds();openFund(nf.id);toast(n+' created')}}
 }
 const upiOk=s=>/^[a-zA-Z0-9._-]{2,}@[a-zA-Z0-9]{2,}$/.test(s);
 function upiLink(f,amt){return 'upi://pay?pa='+encodeURIComponent(S.upi.id)+'&pn='+encodeURIComponent(S.upi.name||'Mayank')+'&tn='+encodeURIComponent(f.name)+(amt>0?'&am='+amt:'')+'&cu=INR'}
-function qrSvg(text){try{const q=qrcode(0,'M');q.addData(text);q.make();return q.createSvgTag({cellSize:4,margin:2,scalable:true})}catch(e){return '<div class="lbl">QR nahi ban paya</div>'}}
+function qrSvg(text){try{const q=qrcode(0,'M');q.addData(text);q.make();return q.createSvgTag({cellSize:4,margin:2,scalable:true})}catch(e){return '<div class="lbl">Could not create QR code</div>'}}
 function openFund(id,mode){const f=S.funds.find(x=>x.id===id);if(!f){closeF();return}openF=id;fmode=mode||'';
   const s=fSaved(id),p=f.target?Math.min(s/f.target*100,100):0;
   const hist=S.fx.filter(x=>x.f===id).sort((a,b)=>b.d.localeCompare(a.d)||b.ts-a.ts);
   let panel='';
   if(fmode==='add'||fmode==='take')panel=`<div class="panel"><label class="amt" style="margin-top:0"><span>₹</span><input id="xa" inputmode="decimal" placeholder="0" aria-label="Amount"></label>
-    <div class="row"><label class="f">Date<input id="xd" type="date" value="${today()}"></label><label class="f">Note<input id="xn" maxlength="60" placeholder="${fmode==='add'?'e.g. Papa ne diye':'e.g. emergency'}"></label></div>
-    <div class="err" id="xerr"></div><button type="button" class="save" id="xsave" style="width:100%">${fmode==='add'?'Fund mein daalo':'Fund se nikalo'}</button></div>`;
+    <div class="row"><label class="f">Date<input id="xd" type="date" value="${today()}"></label><label class="f">Note<input id="xn" maxlength="60" placeholder="${fmode==='add'?'e.g. Gift from dad':'e.g. Emergency'}"></label></div>
+    <div class="err" id="xerr"></div><button type="button" class="save" id="xsave" style="width:100%">${fmode==='add'?'Add to fund':'Withdraw from fund'}</button></div>`;
   if(fmode==='collect'){
-    if(!S.upi.id||fmode==='collect'&&openFund.editUpi)panel=`<div class="panel"><p class="lbl" style="margin-top:0">Apna UPI ID daalo (GPay/PhonePe/Paytm mein milega). Paisa seedha tere bank mein aayega.</p>
+    if(!S.upi.id||fmode==='collect'&&openFund.editUpi)panel=`<div class="panel"><p class="lbl" style="margin-top:0">Enter your UPI ID (find it in GPay, PhonePe or Paytm). Money goes straight to your bank account.</p>
       <label class="f">UPI ID<input id="ui" placeholder="mayank@okaxis" value="${esc(S.upi.id||'')}" autocapitalize="off"></label>
-      <label class="f" style="margin-top:10px">Naam (bhejne wale ko dikhega)<input id="un" placeholder="Mayank Agrawal" value="${esc(S.upi.name||'')}"></label>
+      <label class="f" style="margin-top:10px">Name (shown to the sender)<input id="un" placeholder="Mayank Agrawal" value="${esc(S.upi.name||'')}"></label>
       <div class="err" id="uerr"></div><button type="button" class="save" id="usave" style="width:100%">Save</button></div>`;
-    else panel=`<div class="panel"><label class="f">Kitna mangna hai? (optional)<input id="ca" inputmode="numeric" placeholder="Khaali chhodo toh bhejne wala khud daalega"></label>
+    else panel=`<div class="panel"><label class="f">Amount to request (optional)<input id="ca" inputmode="numeric" placeholder="Leave empty to let the sender choose"></label>
       <div class="qr" id="qr">${qrSvg(upiLink(f,0))}</div>
-      <p class="lbl" style="text-align:center;margin:0">GPay / PhonePe / Paytm se scan karo<br>UPI: <span class="num">${esc(S.upi.id)}</span></p>
-      <div class="acts"><button type="button" class="del" id="ushare">Share</button><button type="button" class="save" id="ugot">Paisa aa gaya, add karo</button></div>
-      <button type="button" class="link" id="uedit">UPI ID badlo</button></div>`;
+      <p class="lbl" style="text-align:center;margin:0">Scan with GPay, PhonePe or Paytm<br>UPI: <span class="num">${esc(S.upi.id)}</span></p>
+      <div class="acts"><button type="button" class="del" id="ushare">Share</button><button type="button" class="save" id="ugot">Received? Add it</button></div>
+      <button type="button" class="link" id="uedit">Change UPI ID</button></div>`;
   }
   $('fsheet').innerHTML=`<div class="grab"></div>
   <div class="fcard" style="margin:0;cursor:default"><div class="top"><span class="nm">${esc(f.name)}</span><span class="num">${f.target?Math.floor(p)+'%':''}</span></div>
   <div class="bal num" style="margin:8px 0 0">${inr(s)}</div>${f.target?`<div class="pbar${s>=f.target?' done':''}"><i style="width:${p.toFixed(1)}%"></i></div><div class="lbl">Target ${inr(f.target)}${f.by?' · '+esc(f.by):''}</div><div class="lbl">${esc(fundLine(f,s))}</div>`:''}</div>
-  <div class="btns"><button type="button" class="${fmode==='add'?'pri':''}" data-m="add">+ Daalo</button><button type="button" class="${fmode==='take'?'pri':''}" data-m="take">− Nikalo</button><button type="button" class="${fmode==='collect'?'pri':''}" data-m="collect">UPI collect</button></div>
+  <div class="btns"><button type="button" class="${fmode==='add'?'pri':''}" data-m="add">+ Add</button><button type="button" class="${fmode==='take'?'pri':''}" data-m="take">− Withdraw</button><button type="button" class="${fmode==='collect'?'pri':''}" data-m="collect">UPI collect</button></div>
   ${panel}
-  <h2>History</h2><div class="hist">${hist.length?hist.map(x=>`<div class="hrow"><span><span class="num ${x.a>0?'inc':''}">${x.a>0?'+':'−'}${inr(Math.abs(x.a))}</span> <span class="lbl">· ${esc(x.d)}${x.n?' · '+esc(x.n):''}</span></span><button class="x" data-x="${esc(x.id)}" aria-label="Delete">×</button></div>`).join(''):'<div class="lbl">Abhi kuch jama nahi hua.</div>'}</div>
-  <div class="acts"><button type="button" class="del" id="fdel">${delArm?'Pakka delete?':'Delete fund'}</button><button type="button" class="save" id="fedit" style="background:var(--bg);color:var(--ink);border:1px solid var(--line)">Edit fund</button></div>`;
+  <h2>History</h2><div class="hist">${hist.length?hist.map(x=>`<div class="hrow"><span><span class="num ${x.a>0?'inc':''}">${x.a>0?'+':'−'}${inr(Math.abs(x.a))}</span> <span class="lbl">· ${esc(x.d)}${x.n?' · '+esc(x.n):''}</span></span><button class="x" data-x="${esc(x.id)}" aria-label="Delete">×</button></div>`).join(''):'<div class="lbl">Nothing saved yet.</div>'}</div>
+  <div class="acts"><button type="button" class="del" id="fdel">${delArm?'Tap again to delete':'Delete fund'}</button><button type="button" class="save" id="fedit" style="background:var(--bg);color:var(--ink);border:1px solid var(--line)">Edit fund</button></div>`;
   openLayer();
   $('fsheet').querySelector('.btns').onclick=e=>{const b=e.target.closest('button');if(b){openFund.editUpi=false;openFund(id,fmode===b.dataset.m?'':b.dataset.m)}};
   $('fedit').onclick=()=>openFundForm(f);
   $('fdel').onclick=()=>{if(!delArm){delArm=true;openFund(id,fmode);return}
     const gone={f,fx:S.fx.filter(x=>x.f===id)};S.funds=S.funds.filter(x=>x.id!==id);S.fx=S.fx.filter(x=>x.f!==id);persist();closeF();renderFunds();
-    lastDeleted=null;toast(f.name+' delete ho gaya',true);undoFund=gone};
+    lastDeleted=null;toast(f.name+' deleted',true);undoFund=gone};
   $('fsheet').querySelector('.hist').onclick=e=>{const b=e.target.closest('.x');if(!b)return;const x=S.fx.find(y=>y.id===b.dataset.x);if(!x)return;
-    S.fx=S.fx.filter(y=>y!==x);persist();renderFunds();openFund(id,fmode);lastDeleted=null;undoFund={fx:[x]};toast('Entry hata di',true)};
+    S.fx=S.fx.filter(y=>y!==x);persist();renderFunds();openFund(id,fmode);lastDeleted=null;undoFund={fx:[x]};toast('Entry removed',true)};
   if($('xsave')){setTimeout(()=>{const e=$('xa');e&&e.focus()},150);$('xsave').onclick=()=>{const a=parseFloat($('xa').value.replace(/,/g,''));
-    if(!(a>0)||a>1e9){$('xerr').textContent='Amount daalo';return}
-    if(fmode==='take'&&a>s){$('xerr').textContent='Fund mein sirf '+inr(s)+' hai';return}
+    if(!(a>0)||a>1e9){$('xerr').textContent='Enter an amount';return}
+    if(fmode==='take'&&a>s){$('xerr').textContent='Only '+inr(s)+' in this fund';return}
     S.fx.push({id:uid(),f:id,a:fmode==='add'?Math.round(a*100)/100:-Math.round(a*100)/100,d:$('xd').value||today(),n:$('xn').value.trim().slice(0,60),ts:Date.now()});
-    const was=fmode;persist();renderFunds();openFund(id);toast(was==='add'?inr(a)+' '+f.name+' mein gaye':inr(a)+' nikale')}}
-  if($('usave'))$('usave').onclick=()=>{const v=$('ui').value.trim();if(!upiOk(v)){$('uerr').textContent='UPI ID sahi nahi lag raha (jaise naam@okaxis)';return}
+    const was=fmode;persist();renderFunds();openFund(id);toast(was==='add'?inr(a)+' added to '+f.name:inr(a)+' withdrawn')}}
+  if($('usave'))$('usave').onclick=()=>{const v=$('ui').value.trim();if(!upiOk(v)){$('uerr').textContent='That UPI ID looks wrong (e.g. name@okaxis)';return}
     S.upi={id:v,name:$('un').value.trim().slice(0,40)};openFund.editUpi=false;persist();openFund(id,'collect')};
   if($('ca')){$('ca').oninput=()=>{const a=Math.round(parseFloat($('ca').value)||0);$('qr').innerHTML=qrSvg(upiLink(f,a>0?a:0))};
-    $('ushare').onclick=()=>{const a=Math.round(parseFloat($('ca').value)||0);shareText('Mere '+f.name+' mein contribute karo'+(a>0?' ('+inr(a)+')':'')+'. UPI ID: '+S.upi.id+'\n'+upiLink(f,a),'Link')};
-    $('ugot').onclick=()=>{const a=$('ca').value;openFund(id,'add');if(a)$('xa').value=a;$('xn').value='UPI se aaya'};
+    $('ushare').onclick=()=>{const a=Math.round(parseFloat($('ca').value)||0);shareText('Contribute to my '+f.name+(a>0?' ('+inr(a)+')':'')+'. UPI ID: '+S.upi.id+'\n'+upiLink(f,a),'Link')};
+    $('ugot').onclick=()=>{const a=$('ca').value;openFund(id,'add');if(a)$('xa').value=a;$('xn').value='Received via UPI'};
     $('uedit').onclick=()=>{openFund.editUpi=true;openFund(id,'collect')}}
 }
 let undoFund=null;
-{const u0=$('undo').onclick;$('undo').onclick=()=>{if($('undo').textContent==='Undo'&&undoFund){const g=undoFund;undoFund=null;if(g.f)S.funds.push(g.f);S.fx.push(...g.fx);persist();renderFunds();if(openF)openFund(openF);toast('Wapas aa gaya');return}u0()}}
+{const u0=$('undo').onclick;$('undo').onclick=()=>{if($('undo').textContent==='Undo'&&undoFund){const g=undoFund;undoFund=null;if(g.f)S.funds.push(g.f);S.fx.push(...g.fx);persist();renderFunds();if(openF)openFund(openF);toast('Restored');return}u0()}}
 {let v='money';try{v=localStorage.getItem(LS+'-view')||'money'}catch(e){}setView(v==='funds'?'funds':'money')}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeF()});
-window.paisaUpdate=()=>{$('tmsg').textContent='Naya update aaya hai';const u=$('undo');u.hidden=false;u.textContent='Update karo';$('toast').classList.add('show');clearTimeout(toastT)};
-loadLocal();render();renderFunds();setSync('Phone mein saved · Backup lete rehna');
+window.paisaUpdate=()=>{$('tmsg').textContent='New update available';const u=$('undo');u.hidden=false;u.textContent='Update now';$('toast').classList.add('show');clearTimeout(toastT)};
+loadLocal();render();renderFunds();setSync('Saved on this phone · Back up regularly');
 
 }
 </script>

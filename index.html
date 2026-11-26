@@ -2715,7 +2715,10 @@ let undoFund=null;
 {const u0=$('undo').onclick;$('undo').onclick=()=>{if($('undo').textContent==='Undo'&&undoFund){const g=undoFund;undoFund=null;if(g.f)S.funds.push(g.f);S.fx.push(...g.fx);persist();renderFunds();if(openF)openFund(openF);toast('Restored');return}u0()}}
 {let v='money';try{v=localStorage.getItem(LS+'-view')||'money'}catch(e){}setView(v==='funds'?'funds':'money')}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeF()});
-window.paisaUpdate=()=>{$('tmsg').textContent='New update available';const u=$('undo');u.hidden=false;u.textContent='Update now';$('toast').classList.add('show');clearTimeout(toastT)};
+window.paisaUpdate=()=>{const busy=document.querySelector('.open')||(document.activeElement&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName));
+  if(!busy&&AND&&AND.reload){try{localStorage.setItem(LS+'-updated','1')}catch(e){}AND.reload();return}
+  $('tmsg').textContent='New update available';const u=$('undo');u.hidden=false;u.textContent='Update now';$('toast').classList.add('show');clearTimeout(toastT)};
+try{if(localStorage.getItem(LS+'-updated')){localStorage.removeItem(LS+'-updated');setTimeout(()=>toast('App updated'),400)}}catch(e){}
 // ---------- Menu & profile ----------
 const openD=()=>{renderWho();document.querySelectorAll('.mi[data-go]').forEach(b=>b.classList.toggle('on',b.dataset.go===curView));$('dlayer').classList.add('open')};
 const closeD=()=>$('dlayer').classList.remove('open');

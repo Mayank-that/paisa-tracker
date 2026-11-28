@@ -133,9 +133,8 @@ h2{font-size:15px;font-weight:600;margin:24px 2px 10px;display:flex;justify-cont
         <div><span class="lbl" id="rcvL">Received today</span><b class="num in" id="rcv">₹0</b></div>
       </div>
     </section>
-    <div class="acts2">
+    <div class="acts2" style="grid-template-columns:1fr">
       <button class="bigbtn rcv" id="bRcv">+ Received</button>
-      <button class="bigbtn spd" id="bSpd">− Spent</button>
     </div>
     <h2>Quick add <button class="link" id="qEdit">Edit</button></h2>
     <div class="quick" id="quick"></div>
@@ -2592,7 +2591,7 @@ function rFlow(){
   const isT=day===today();$('rcvL').textContent=isT?'Received today':'Received';$('rcv').textContent=inr(ri);
   $('quick').innerHTML=quick().map((q,i)=>`<button class="qb" data-q="${i}">${esc(q.n)} <span class="num">${inr(q.a)}</span></button>`).join('');
   $('dayH').textContent=isT?'Today':dayLabel(day);
-  $('dayList').innerHTML=dt.length?`<div class="list">${dt.sort((a,b)=>b.ts-a.ts).map(txRow).join('')}</div>`:'<div class="list"><div class="empty">Nothing yet. Tap <b>+ Received</b> or <b>− Spent</b>, or a quick button.</div></div>';
+  $('dayList').innerHTML=dt.length?`<div class="list">${dt.sort((a,b)=>b.ts-a.ts).map(txRow).join('')}</div>`:'<div class="list"><div class="empty">Nothing yet. Tap <b>+ Received</b> to add cash you got.</div></div>';
 }
 function rSpend(){
   const mt=S.txns.filter(t=>t.t==='e'&&t.d.slice(0,7)===month),tot=sum(mt),B=S.budget;
@@ -2676,7 +2675,7 @@ function entrySheet(type,tx){let t=tx?tx.t:type,c=tx?tx.c:(t==='i'?'Parents':'Fo
     if(tx)$('eDel').onclick=()=>{const gone=tx;S.txns=S.txns.filter(x=>x.id!==tx.id);save();closeSheet();render();toast('Entry deleted',()=>{S.txns.push(gone);save();render()})};
     if(!tx)focusLater('eAmt')};
   draw()}
-$('bRcv').onclick=()=>entrySheet('i');$('bSpd').onclick=()=>entrySheet('e');
+$('bRcv').onclick=()=>entrySheet('i');
 $('fab').onclick=()=>cur==='funds'?fundForm():entrySheet('e');
 document.addEventListener('click',e=>{const b=e.target.closest('.tx');if(!b)return;const t=S.txns.find(x=>x.id===b.dataset.id);if(t)entrySheet(t.t,t)});
 

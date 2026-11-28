@@ -212,9 +212,9 @@ const quick=()=>S.quick||DEF_QUICK;
 // ---------- Cash maths ----------
 const isCash=t=>t.m==='Cash';
 function lastCheck(){return S.checks.length?S.checks.reduce((a,b)=>b.ts>a.ts?b:a):null}
-function cashInHand(){const c=lastCheck();const after=S.txns.filter(t=>isCash(t)&&(!c||t.ts>c.ts));
+function cashInHand(){const after=S.txns.filter(isCash);
   const ids=new Set(after.map(t=>t.id));
-  return (c?c.amt:0)+sum(after.filter(t=>t.t==='i'))-sum(after.filter(t=>t.t==='e'))-sum(S.saves.filter(s=>ids.has(s.tx)))}
+  return sum(after.filter(t=>t.t==='i'))-sum(after.filter(t=>t.t==='e'))-sum(S.saves.filter(s=>ids.has(s.tx)))}
 const saveOf=id=>S.saves.find(s=>s.tx===id);
 function savNow(){if(!S.sav)return null;const after=S.txns.filter(t=>t.ts>S.sav.ts);return S.sav.amt+sum(after.filter(t=>t.t==='i'))-sum(after.filter(t=>t.t==='e'))}
 const fSaved=id=>S.fx.filter(x=>x.f===id).reduce((a,x)=>a+x.a,0);
@@ -278,7 +278,7 @@ function bindChips(box,cb){box.onclick=e=>{const b=e.target.closest('.chip');if(
 
 // Entry sheet: received / spent
 function entrySheet(type,tx){let t=tx?tx.t:type,c=tx?tx.c:(t==='i'?'Parents':'Food');const sv=tx?saveOf(tx.id):null;
-  const draw=()=>{openSheet(`<div class="seg" id="eSeg"><button type="button" data-t="e" class="${t==='e'?'on':''}">Spent</button><button type="button" data-t="i" class="${t==='i'?'on':''}">Received</button></div>
+  const draw=()=>{openSheet(`<h3>${t==='i'?(tx?'Edit funds':'Add your funds'):'Edit spent'}</h3>
     <label class="amt ${t==='i'?'g':''}"><span>₹</span><input id="eAmt" inputmode="decimal" placeholder="0" aria-label="Amount" value="${tx?tx.a:''}"></label>
     <div class="err" id="eErr"></div>
     <div class="lbl">${t==='i'?'Where did it come from?':'What was it for?'}</div>
@@ -289,8 +289,7 @@ function entrySheet(type,tx){let t=tx?tx.t:type,c=tx?tx.c:(t==='i'?'Parents':'Fo
     <div class="slice" id="slBox"${t==='i'&&c==='Slice'?'':' hidden'}><b class="in">Goes straight to Savings</b>
       <label class="f" style="margin:10px 0 0">What is it for? (optional)<input id="slF" maxlength="24" placeholder="e.g. Bike, Emergency" value="${sv&&sv.n!=='Slice'?esc(sv.n):''}" list="slList"></label>
       <datalist id="slList">${[...new Set(S.saves.map(s=>s.n))].map(n=>`<option value="${esc(n)}">`).join('')}</datalist></div>
-    <div class="btns">${tx?'<button type="button" class="ghost red" id="eDel">Delete</button>':''}<button type="button" class="save ${t==='i'?'g':''}" id="eSave">${tx?'Update':(t==='i'?'Add received':'Add spent')}</button></div>`);
-    $('eSeg').onclick=e=>{const b=e.target.closest('button');if(!b||b.dataset.t===t)return;const keep=$('eAmt').value;t=b.dataset.t;c=t==='i'?'Parents':'Food';draw();$('eAmt').value=keep};
+    <div class="btns">${tx?'<button type="button" class="ghost red" id="eDel">Delete</button>':''}<button type="button" class="save ${t==='i'?'g':''}" id="eSave">${tx?'Update':(t==='i'?'Add funds':'Add spent')}</button></div>`);
     bindChips($('eCats'),v=>{c=v;$('slBox').hidden=!(t==='i'&&c==='Slice')});
     $('eSave').onclick=()=>{const a=num($('eAmt').value);if(!(a>0)){$('eErr').textContent='Enter an amount';return}if(a>1e9){$('eErr').textContent='Amount is too large';return}
       const rec={id:tx?tx.id:uid(),t,a:Math.round(a*100)/100,c,n:$('eNote').value.trim().slice(0,60),d:$('eDate').value||today(),m:$('eMode').value,ts:tx?tx.ts:Date.now()};

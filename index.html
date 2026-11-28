@@ -133,8 +133,8 @@ h2{font-size:15px;font-weight:600;margin:24px 2px 10px;display:flex;justify-cont
         <div><span class="lbl" id="rcvL">Received today</span><b class="num in" id="rcv">₹0</b></div>
       </div>
     </section>
-    <div class="acts2" style="grid-template-columns:1fr">
-      <button class="bigbtn rcv" id="bRcv">+ Received</button>
+    <div style="margin-top:12px">
+      <button class="bigbtn rcv" id="bRcv" style="height:44px;padding:0 20px;font-size:15px;border-radius:12px">+ Add your funds</button>
     </div>
     <h2>Quick add <button class="link" id="qEdit">Edit</button></h2>
     <div class="quick" id="quick"></div>
@@ -2591,7 +2591,7 @@ function rFlow(){
   const isT=day===today();$('rcvL').textContent=isT?'Received today':'Received';$('rcv').textContent=inr(ri);
   $('quick').innerHTML=quick().map((q,i)=>`<button class="qb" data-q="${i}">${esc(q.n)} <span class="num">${inr(q.a)}</span></button>`).join('');
   $('dayH').textContent=isT?'Today':dayLabel(day);
-  $('dayList').innerHTML=dt.length?`<div class="list">${dt.sort((a,b)=>b.ts-a.ts).map(txRow).join('')}</div>`:'<div class="list"><div class="empty">Nothing yet. Tap <b>+ Received</b> to add cash you got.</div></div>';
+  $('dayList').innerHTML=dt.length?`<div class="list">${dt.sort((a,b)=>b.ts-a.ts).map(txRow).join('')}</div>`:'<div class="list"><div class="empty">Nothing yet. Tap <b>+ Add your funds</b> to add cash you got.</div></div>';
 }
 function rSpend(){
   const mt=S.txns.filter(t=>t.t==='e'&&t.d.slice(0,7)===month),tot=sum(mt),B=S.budget;

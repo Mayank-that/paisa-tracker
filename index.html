@@ -129,11 +129,9 @@ h2{font-size:15px;font-weight:600;margin:24px 2px 10px;display:flex;justify-cont
       <div class="lbl">Cash in hand</div>
       <div class="big num" id="cih">₹0</div>
       <div class="lbl" id="cihNote"></div>
-      <div class="split">
+      <div class="split" style="grid-template-columns:1fr">
         <div><span class="lbl" id="rcvL">Received today</span><b class="num in" id="rcv">₹0</b></div>
-        <div><span class="lbl" id="spdL">Spent today</span><b class="num" id="spd">₹0</b></div>
       </div>
-      <div class="flowbar" aria-hidden="true"><i class="bi" id="fbi"></i><i class="bo" id="fbo"></i></div>
     </section>
     <div class="acts2">
       <button class="bigbtn rcv" id="bRcv">+ Received</button>
@@ -141,11 +139,6 @@ h2{font-size:15px;font-weight:600;margin:24px 2px 10px;display:flex;justify-cont
     </div>
     <h2>Quick add <button class="link" id="qEdit">Edit</button></h2>
     <div class="quick" id="quick"></div>
-    <h2>Cash check</h2>
-    <section class="card check" id="checkCard">
-      <div><b id="checkT">Count your wallet</b><div class="lbl" id="checkS">Enter the cash you have, FreeBird works out the rest.</div></div>
-      <button class="pill" id="bCheck">Check</button>
-    </section>
     <h2 id="dayH">Today</h2>
     <div id="dayList"></div>
   </main>
@@ -2593,18 +2586,11 @@ function render(){
   if(cur==='flow')rFlow();else if(cur==='spend')rSpend();else if(cur==='liq')rLiq();else if(cur==='sav')rSav();else rFunds()}
 
 function rFlow(){
-  const c=lastCheck(),cih=cashInHand();
-  $('cih').textContent=sinr(cih);
-  $('cihNote').textContent=c?'Last counted '+(ymd(new Date(c.ts))===today()?'today':dayLabel(ymd(new Date(c.ts))))+' · '+inr(c.amt):'Do a cash check below to set your starting cash';
-  const dt=S.txns.filter(t=>t.d===day),ri=sum(dt.filter(t=>t.t==='i')),so=sum(dt.filter(t=>t.t==='e'));
-  const isT=day===today();$('rcvL').textContent=isT?'Received today':'Received';$('spdL').textContent=isT?'Spent today':'Spent';
-  $('rcv').textContent=inr(ri);$('spd').textContent=inr(so);
-  const tot=ri+so||1;$('fbi').style.width=(ri/tot*100)+'%';$('fbo').style.width=(so/tot*100)+'%';
+  $('cih').textContent=sinr(cashInHand());
+  $('cihNote').textContent='Cash received minus cash spent';
+  const dt=S.txns.filter(t=>t.d===day),ri=sum(dt.filter(t=>t.t==='i'));
+  const isT=day===today();$('rcvL').textContent=isT?'Received today':'Received';$('rcv').textContent=inr(ri);
   $('quick').innerHTML=quick().map((q,i)=>`<button class="qb" data-q="${i}">${esc(q.n)} <span class="num">${inr(q.a)}</span></button>`).join('');
-  const doneToday=c&&ymd(new Date(c.ts))===today(),eve=new Date().getHours()>=19;
-  $('checkCard').classList.toggle('due',!doneToday&&eve);
-  $('checkT').textContent=doneToday?'Counted today':(eve?'Time for today\'s cash check':'Count your wallet');
-  $('checkS').textContent=doneToday?'Count again any time if something changed.':'Enter the cash you have, FreeBird works out the rest.';
   $('dayH').textContent=isT?'Today':dayLabel(day);
   $('dayList').innerHTML=dt.length?`<div class="list">${dt.sort((a,b)=>b.ts-a.ts).map(txRow).join('')}</div>`:'<div class="list"><div class="empty">Nothing yet. Tap <b>+ Received</b> or <b>− Spent</b>, or a quick button.</div></div>';
 }
@@ -2710,25 +2696,6 @@ $('qEdit').onclick=()=>{let list=quick().map(q=>({...q}));
       if(list.length>=12){$('qErr').textContent='Up to 12 buttons';return}list.push({n:n.slice(0,16),a:Math.round(a),c:qc});draw()};
     $('qDone').onclick=()=>{S.quick=list;save();closeSheet();render()}};
   draw()};
-
-// Cash check
-$('bCheck').onclick=()=>{const exp=cashInHand(),first=!S.checks.length;
-  openSheet(`<h3>Cash check</h3><p class="lbl" style="margin-top:0">${first?'How much cash do you have right now? This is your starting point.':'Count the cash in your wallet. FreeBird expects about <span class="num">'+esc(sinr(exp))+'</span>.'}</p>
-  <label class="amt"><span>₹</span><input id="cAmt" inputmode="numeric" placeholder="0" aria-label="Cash in wallet"></label><div class="err" id="cErr"></div>
-  <div class="btns"><button type="button" class="save o" id="cSave">Save</button></div>`);focusLater('cAmt');
-  $('cSave').onclick=()=>{const w=num($('cAmt').value);if(!(w>=0)||w>1e9){$('cErr').textContent='Enter the cash you have';return}
-    const now=Date.now(),diff=Math.round((exp-w)*100)/100;let rec=null;
-    if(!first&&Math.abs(diff)>=1){rec={id:uid(),t:diff>0?'e':'i',a:Math.abs(diff),c:diff>0?'Untracked':'Found',n:'From cash check',d:today(),m:'Cash',ts:now};S.txns.push(rec)}
-    S.checks.push({amt:Math.round(w*100)/100,ts:now+1});if(S.checks.length>400)S.checks=S.checks.slice(-400);
-    save();render();
-    if(!rec){closeSheet();toast(first?'Starting cash set: '+inr(w):'All matches, nice!');return}
-    const isOut=rec.t==='e';let cc=rec.c;
-    openSheet(`<h3>${isOut?inr(rec.a)+' went out':inr(rec.a)+' extra'}</h3><p class="lbl" style="margin-top:0">${isOut?'Remember where it went? Tap one, or skip.':'Where did it come from? Tap one, or skip.'}</p>
-      <div class="chips" id="cCats">${chips(isOut?CAT_OUT:CAT_IN,'')}</div>
-      <div class="btns"><button type="button" class="ghost" id="cSkip">Skip</button><button type="button" class="save" id="cOk">Save</button></div>`);
-    bindChips($('cCats'),v=>cc=v);
-    $('cSkip').onclick=()=>{closeSheet();toast('Saved as '+rec.c)};
-    $('cOk').onclick=()=>{rec.c=cc;save();closeSheet();render();toast('Saved as '+cc)}}};
 
 // Budget
 $('spSet').onclick=()=>{openSheet(`<h3>Monthly budget</h3><label class="amt"><span>₹</span><input id="bAmt" inputmode="numeric" placeholder="0" value="${S.budget||''}" aria-label="Budget"></label>

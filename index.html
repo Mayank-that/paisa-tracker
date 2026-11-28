@@ -151,7 +151,7 @@ h2{font-size:15px;font-weight:600;margin:24px 2px 10px;display:flex;justify-cont
     <section class="card">
       <div class="lbl">Total savings</div>
       <div class="big num in" id="svTot">₹0</div>
-      <div class="lbl" id="svSub">Set aside a slice whenever you add funds.</div>
+      <div class="lbl" id="svSub">Money you add from Slice lands here.</div>
     </section>
     <h2>Saving for</h2><div class="cats g" id="svBy"></div>
     <h2>History</h2><div id="svList"></div>
@@ -182,7 +182,7 @@ const $=id=>document.getElementById(id);
 const AND=window.Android||null;
 const LS='paisa-tracker-v1';
 const CAT_OUT=['Food','Chai/Snacks','Travel','Shopping','Bills','Rent','Recharge','Health','Fun','Education','Untracked','Other'];
-const CAT_IN=['Parents','Family','Friends','Freelance','Gift','Refund','Borrowed','Found','Other'];
+const CAT_IN=['Slice','Parents','Family','Friends','Freelance','Gift','Refund','Borrowed','Found','Other'];
 const MODES=['Cash','UPI','Card','Bank'];
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const inr=n=>'₹'+Math.round(Math.abs(n)).toLocaleString('en-IN');
@@ -256,9 +256,9 @@ function rFlow(){
 }
 function rSav(){
   const tot=sum(S.saves);$('svTot').textContent=inr(tot);
-  $('svSub').textContent=S.saves.length?S.saves.length+(S.saves.length>1?' slices saved':' slice saved'):'Set aside a slice whenever you add funds.';
+  $('svSub').textContent=S.saves.length?S.saves.length+(S.saves.length>1?' entries':' entry'):'Money you add from Slice lands here.';
   const by={};S.saves.forEach(s=>by[s.n]=(by[s.n]||0)+s.a);
-  $('svBy').innerHTML=bars(by)||'<div class="lbl">Nothing saved yet. When you tap <b>+ Add your funds</b>, slide to save a part of it.</div>';
+  $('svBy').innerHTML=bars(by)||'<div class="lbl">Nothing saved yet. Tap <b>+ Add your funds</b> and choose <b>Slice</b>, it goes straight here.</div>';
   const list=S.saves.slice().sort((a,b)=>b.d.localeCompare(a.d)||b.ts-a.ts);
   $('svList').innerHTML=list.length?'<div class="list">'+list.map(s=>{const t=S.txns.find(x=>x.id===s.tx);
     return `<div class="sv"><span class="ic i">${esc(s.n.slice(0,2))}</span><span style="min-width:0"><div class="t" style="font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(s.n)}</div><div class="lbl">${esc(dayLabel(s.d))}${t?' · from '+esc(t.c)+' '+inr(t.a):''}</div></span><span style="display:flex;align-items:center;gap:2px"><span class="num in">+${inr(s.a)}</span><button class="x" data-s="${esc(s.id)}" aria-label="Remove">×</button></span></div>`}).join('')+'</div>':'';
@@ -286,25 +286,18 @@ function entrySheet(type,tx){let t=tx?tx.t:type,c=tx?tx.c:(t==='i'?'Parents':'Fo
     <div class="two"><label class="f">Date<input id="eDate" type="date" max="${today()}" value="${tx?tx.d:day}"></label>
     <label class="f">Paid with<select id="eMode">${MODES.map(m=>`<option${(tx?tx.m:'Cash')===m?' selected':''}>${m}</option>`).join('')}</select></label></div>
     <label class="f">Note (optional)<input id="eNote" maxlength="60" placeholder="${t==='i'?'e.g. Pocket money':'e.g. Chai with friends'}" value="${tx?esc(tx.n):''}"></label>
-    ${t==='i'?`<div class="slice"><div class="row" style="margin:0"><b>Save a slice</b><span class="num in" id="slV">₹0</span></div>
-      <input type="range" id="slR" min="0" max="100" step="5" value="${sv?Math.round(sv.a/tx.a*100):0}" aria-label="Percent to save">
-      <div class="pct" id="slP">${[0,10,25,50,100].map(x=>`<button type="button" data-p="${x}">${x}%</button>`).join('')}</div>
-      <label class="f" style="margin:12px 0 0">What is it for?<input id="slF" maxlength="24" placeholder="e.g. Bike, Emergency" value="${sv?esc(sv.n):''}" list="slList"></label>
-      <datalist id="slList">${[...new Set(S.saves.map(s=>s.n))].map(n=>`<option value="${esc(n)}">`).join('')}</datalist>
-      <div class="lbl" id="slH">Slide to put part of this money into Savings.</div></div>`:''}
+    <div class="slice" id="slBox"${t==='i'&&c==='Slice'?'':' hidden'}><b class="in">Goes straight to Savings</b>
+      <label class="f" style="margin:10px 0 0">What is it for? (optional)<input id="slF" maxlength="24" placeholder="e.g. Bike, Emergency" value="${sv&&sv.n!=='Slice'?esc(sv.n):''}" list="slList"></label>
+      <datalist id="slList">${[...new Set(S.saves.map(s=>s.n))].map(n=>`<option value="${esc(n)}">`).join('')}</datalist></div>
     <div class="btns">${tx?'<button type="button" class="ghost red" id="eDel">Delete</button>':''}<button type="button" class="save ${t==='i'?'g':''}" id="eSave">${tx?'Update':(t==='i'?'Add received':'Add spent')}</button></div>`);
     $('eSeg').onclick=e=>{const b=e.target.closest('button');if(!b||b.dataset.t===t)return;const keep=$('eAmt').value;t=b.dataset.t;c=t==='i'?'Parents':'Food';draw();$('eAmt').value=keep};
-    bindChips($('eCats'),v=>c=v);
-    const slUp=()=>{if(!$('slR'))return;const a=num($('eAmt').value)||0,p=+$('slR').value,s=Math.round(a*p/100);
-      $('slV').textContent=inr(s)+' ('+p+'%)';$('slP').querySelectorAll('button').forEach(b=>b.classList.toggle('on',+b.dataset.p===p));
-      $('slH').textContent=a>0?(p?inr(s)+' to Savings, '+inr(a-s)+' stays as cash':'Slide to put part of this money into Savings.'):'Enter the amount first.'};
-    if($('slR')){$('slR').oninput=slUp;$('eAmt').addEventListener('input',slUp);$('slP').onclick=e=>{const b=e.target.closest('button');if(b){$('slR').value=b.dataset.p;slUp()}};slUp()}
+    bindChips($('eCats'),v=>{c=v;$('slBox').hidden=!(t==='i'&&c==='Slice')});
     $('eSave').onclick=()=>{const a=num($('eAmt').value);if(!(a>0)){$('eErr').textContent='Enter an amount';return}if(a>1e9){$('eErr').textContent='Amount is too large';return}
       const rec={id:tx?tx.id:uid(),t,a:Math.round(a*100)/100,c,n:$('eNote').value.trim().slice(0,60),d:$('eDate').value||today(),m:$('eMode').value,ts:tx?tx.ts:Date.now()};
       if(tx)S.txns=S.txns.map(x=>x.id===rec.id?rec:x);else S.txns.push(rec);
       S.saves=S.saves.filter(s=>s.tx!==rec.id);let sl=0;
-      if(t==='i'&&$('slR')){sl=Math.round(rec.a*(+$('slR').value)/100);if(sl>0)S.saves.push({id:sv?sv.id:uid(),a:sl,n:($('slF').value.trim()||'General').slice(0,24),d:rec.d,tx:rec.id,ts:sv?sv.ts:Date.now()})}
-      save();closeSheet();render();toast(tx?'Updated':(t==='i'?'Added '+inr(rec.a)+(sl?' · '+inr(sl)+' saved':''):'Spent '+inr(rec.a)))};
+      if(t==='i'&&c==='Slice'){sl=rec.a;S.saves.push({id:sv?sv.id:uid(),a:sl,n:($('slF').value.trim()||'Slice').slice(0,24),d:rec.d,tx:rec.id,ts:sv?sv.ts:Date.now()})}
+      save();closeSheet();render();toast(tx?'Updated':(t==='i'?'Added '+inr(rec.a)+(sl?' to Savings':''):'Spent '+inr(rec.a)))};
     if(tx)$('eDel').onclick=()=>{const gone=tx,gs=S.saves.filter(s=>s.tx===tx.id);S.txns=S.txns.filter(x=>x.id!==tx.id);S.saves=S.saves.filter(s=>s.tx!==tx.id);save();closeSheet();render();toast('Entry deleted',()=>{S.txns.push(gone);S.saves.push(...gs);save();render()})};
     if(!tx)focusLater('eAmt')};
   draw()}

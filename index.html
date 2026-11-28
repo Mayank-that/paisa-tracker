@@ -130,12 +130,10 @@ h2{font-size:15px;font-weight:600;margin:24px 2px 10px;display:flex;justify-cont
       <div class="big num" id="cih">₹0</div>
       <div class="lbl" id="cihNote"></div>
       <div class="split" style="grid-template-columns:1fr">
-        <div><span class="lbl" id="rcvL">Received today</span><b class="num in" id="rcv">₹0</b></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><div style="border:0;padding:0"><span class="lbl" id="rcvL">Received today</span><b class="num in" id="rcv">₹0</b></div>
+        <button class="bigbtn rcv" id="bRcv" style="height:44px;padding:0 18px;font-size:15px;border-radius:12px;flex:none">+ Add your funds</button></div>
       </div>
     </section>
-    <div style="margin-top:12px">
-      <button class="bigbtn rcv" id="bRcv" style="height:44px;padding:0 20px;font-size:15px;border-radius:12px">+ Add your funds</button>
-    </div>
     <h2>Quick add <button class="link" id="qEdit">Edit</button></h2>
     <div class="quick" id="quick"></div>
     <h2 id="dayH">Today</h2>

@@ -146,6 +146,19 @@ h2{font-size:15px;font-weight:600;margin:24px 2px 10px;display:flex;justify-cont
     <div id="dayList"></div>
   </main>
 
+  <!-- EXPENSES -->
+  <main id="v-exp" hidden>
+    <section class="card">
+      <div class="lbl" id="exL">Spent today</div>
+      <div class="big num" id="exDay">₹0</div>
+      <div class="split" style="grid-template-columns:1fr"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+        <div style="border:0;padding:0"><span class="lbl" id="exML">This month</span><b class="num" id="exMon">₹0</b></div>
+        <button class="bigbtn spd" id="exAdd" style="height:44px;padding:0 18px;font-size:15px;border-radius:12px;flex:none;background:var(--acc);color:#fff">+ Add expense</button></div></div>
+    </section>
+    <h2>Where it went</h2><div class="cats o" id="exCats"></div>
+    <h2 id="exH">Today</h2><div id="exList"></div>
+  </main>
+
   <!-- SAVINGS -->
   <main id="v-sav" hidden>
     <section class="card">
@@ -168,7 +181,8 @@ h2{font-size:15px;font-weight:600;margin:24px 2px 10px;display:flex;justify-cont
   <div class="who"><div class="av e" id="mAv">?</div><div style="min-width:0"><b id="mName">Not signed in</b><button class="link" id="mSign" style="padding:2px 0">Sign in</button></div></div>
   <div class="msec">Track</div>
   <button class="mi" data-v="flow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg>Daily Flow</button>
-      <button class="mi" data-v="sav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11a7 6 0 0 1 14 0v3a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3zM9 20v-3M15 20v-3M12 5V3"/></svg>Savings</button>
+      <button class="mi" data-v="exp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18v12H3zM3 11h18M7 15h4"/></svg>Expenses</button>
+  <button class="mi" data-v="sav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11a7 6 0 0 1 14 0v3a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3zM9 20v-3M15 20v-3M12 5V3"/></svg>Savings</button>
     <div class="msec">Account</div>
   <button class="mi" id="mProf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c1-4 4.5-6 8-6s7 2 8 6"/></svg><span id="mProfL">Sign in</span></button>
   <div class="mfoot">FreeBird · Your key to financial freedom</div>
@@ -222,7 +236,7 @@ function savNow(){if(!S.sav)return null;const after=S.txns.filter(t=>t.ts>S.sav.
 const fSaved=id=>S.fx.filter(x=>x.f===id).reduce((a,x)=>a+x.a,0);
 
 // ---------- Views ----------
-const TITLES={flow:'Daily Flow',sav:'Savings'};
+const TITLES={flow:'Daily Flow',exp:'Expenses',sav:'Savings'};
 let cur='flow',day=today(),month=today().slice(0,7);
 function setView(v){if(!TITLES[v])v='flow';cur=v;
   for(const k in TITLES)$('v-'+k).hidden=k!==v;
@@ -232,7 +246,7 @@ function setView(v){if(!TITLES[v])v='flow';cur=v;
   try{localStorage.setItem(LS+'-view2',v)}catch(e){}
   render();window.scrollTo(0,0)}
 new MutationObserver(()=>{if(!$('backmark').classList.contains('open')&&cur!=='flow')setView('flow')}).observe($('backmark'),{attributes:true});
-function shiftNav(n){if(cur==='flow'){const d=new Date(day+'T00:00');d.setDate(d.getDate()+n);const nd=ymd(d);if(nd>today())return;day=nd}
+function shiftNav(n){if(cur!=='sav'){const d=new Date(day+'T00:00');d.setDate(d.getDate()+n);const nd=ymd(d);if(nd>today())return;day=nd}
   else{let [y,m]=month.split('-').map(Number);m+=n;if(m<1){m=12;y--}if(m>12){m=1;y++}month=y+'-'+String(m).padStart(2,'0')}render()}
 $('dprev').onclick=()=>shiftNav(-1);$('dnext').onclick=()=>shiftNav(1);
 
@@ -244,8 +258,17 @@ function bars(map,cls){const r=Object.entries(map).sort((a,b)=>b[1]-a[1]);if(!r.
   return r.map(([c,v])=>`<div class="cat"><span>${esc(c)}</span><div class="bar"><i style="width:${(v/m*100).toFixed(1)}%"></i></div><span class="num">${inr(v)}</span></div>`).join('')}
 
 function render(){
-  $('dlabel').textContent=cur==='flow'?dayLabel(day):monLabel(month);
-  if(cur==='flow')rFlow();else rSav()}
+  $('dlabel').textContent=cur==='sav'?monLabel(month):dayLabel(day);
+  if(cur==='flow')rFlow();else if(cur==='exp')rExp();else rSav()}
+function rExp(){
+  const isT=day===today(),dt=S.txns.filter(t=>t.t==='e'&&t.d===day),mo=S.txns.filter(t=>t.t==='e'&&t.d.slice(0,7)===day.slice(0,7));
+  $('exL').textContent=isT?'Spent today':'Spent on '+dayLabel(day);$('exDay').textContent=inr(sum(dt));
+  $('exML').textContent=monLabel(day.slice(0,7));$('exMon').textContent=inr(sum(mo));
+  const by={};dt.forEach(t=>by[t.c]=(by[t.c]||0)+t.a);
+  $('exCats').innerHTML=bars(by)||'<div class="lbl">Nothing spent '+(isT?'today':'this day')+'.</div>';
+  $('exH').textContent=isT?'Today':dayLabel(day);
+  $('exList').innerHTML=dt.length?`<div class="list">${dt.sort((a,b)=>b.ts-a.ts).map(txRow).join('')}</div>`:'<div class="list"><div class="empty">No expenses yet. Tap <b>+ Add expense</b>.</div></div>'}
+$('exAdd').onclick=()=>entrySheet('e');
 
 function rFlow(){
   $('cih').textContent=sinr(cashInHand());
@@ -289,7 +312,7 @@ function bindChips(box,cb){box.onclick=e=>{const b=e.target.closest('.chip');if(
 
 // Entry sheet: received / spent
 function entrySheet(type,tx){let t=tx?tx.t:type,c=tx?tx.c:(t==='i'?'Parents':'Food');const sv=tx?saveOf(tx.id):null;
-  const draw=()=>{openSheet(`<h3>${t==='i'?(tx?'Edit funds':'Add your funds'):'Edit spent'}</h3>
+  const draw=()=>{openSheet(`<h3>${t==='i'?(tx?'Edit funds':'Add your funds'):(tx?'Edit expense':'Add expense')}</h3>
     <label class="amt ${t==='i'?'g':''}"><span>₹</span><input id="eAmt" inputmode="decimal" placeholder="0" aria-label="Amount" value="${tx?tx.a:''}"></label>
     <div class="err" id="eErr"></div>
     <div class="lbl">${t==='i'?'Where did it come from?':'What was it for?'}</div>
@@ -300,7 +323,7 @@ function entrySheet(type,tx){let t=tx?tx.t:type,c=tx?tx.c:(t==='i'?'Parents':'Fo
     <div class="slice" id="slBox"${t==='i'&&c==='Slice'?'':' hidden'}><b class="in">Goes straight to Savings</b>
       <label class="f" style="margin:10px 0 0">What is it for? (optional)<input id="slF" maxlength="24" placeholder="e.g. Bike, Emergency" value="${sv&&sv.n!=='Slice'?esc(sv.n):''}" list="slList"></label>
       <datalist id="slList">${[...new Set(S.saves.map(s=>s.n))].map(n=>`<option value="${esc(n)}">`).join('')}</datalist></div>
-    <div class="btns">${tx?'<button type="button" class="ghost red" id="eDel">Delete</button>':''}<button type="button" class="save ${t==='i'?'g':''}" id="eSave">${tx?'Update':(t==='i'?'Add funds':'Add spent')}</button></div>`);
+    <div class="btns">${tx?'<button type="button" class="ghost red" id="eDel">Delete</button>':''}<button type="button" class="save ${t==='i'?'g':''}" id="eSave">${tx?'Update':(t==='i'?'Add funds':'Add expense')}</button></div>`);
     bindChips($('eCats'),v=>{c=v;$('slBox').hidden=!(t==='i'&&c==='Slice')});
     $('eSave').onclick=()=>{const a=num($('eAmt').value);if(!(a>0)){$('eErr').textContent='Enter an amount';return}if(a>1e9){$('eErr').textContent='Amount is too large';return}
       const rec={id:tx?tx.id:uid(),t,a:Math.round(a*100)/100,c,n:$('eNote').value.trim().slice(0,60),d:$('eDate').value||today(),m:$('eMode').value,ts:tx?tx.ts:Date.now()};

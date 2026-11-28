@@ -118,6 +118,13 @@ h2{font-size:15px;font-weight:600;margin:24px 2px 10px;display:flex;justify-cont
 .pct button.on{background:var(--in);border-color:var(--in);color:#fff}
 .sv{display:grid;grid-template-columns:40px 1fr auto;gap:12px;align-items:center;padding:11px 14px;border-top:1px solid var(--line)}
 .sv:first-child{border-top:0}
+.av.e{background:#111214;overflow:hidden}
+.av .bird{width:44px;height:44px;animation:bfloat 2.4s ease-in-out infinite}
+.av .wf{transform-box:fill-box;transform-origin:50% 100%;animation:flap .6s ease-in-out infinite alternate}
+.av .wb{transform-box:fill-box;transform-origin:10% 100%;animation:flap .6s ease-in-out infinite alternate-reverse}
+@keyframes flap{from{transform:scaleY(1)}to{transform:scaleY(.45)}}
+@keyframes bfloat{0%,100%{transform:translateY(2px)}50%{transform:translateY(-3px)}}
+@media(prefers-reduced-motion:reduce){.av .bird,.av .wf,.av .wb{animation:none}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -178,7 +185,7 @@ h2{font-size:15px;font-weight:600;margin:24px 2px 10px;display:flex;justify-cont
 <button class="fab" id="fab" hidden>+ Add</button>
 
 <div class="layer" id="dlayer"><div class="scrim" data-close></div><nav class="drawer" aria-label="Menu">
-  <div class="who"><div class="av e" id="mAv">?</div><div style="min-width:0"><b id="mName">Not signed in</b><button class="link" id="mSign" style="padding:2px 0">Sign in</button></div></div>
+  <div class="who"><div class="av e" id="mAv" aria-hidden="true"></div><div style="min-width:0"><b id="mName">Not signed in</b><button class="link" id="mSign" style="padding:2px 0">Sign in</button></div></div>
   <div class="msec">Track</div>
   <button class="mi" data-v="flow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg>Daily Flow</button>
       <button class="mi" data-v="exp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18v12H3zM3 11h18M7 15h4"/></svg>Expenses</button>
@@ -355,11 +362,12 @@ $('qEdit').onclick=()=>{let list=quick().map(q=>({...q}));
   draw()};
 
 // ---------- Menu & profile ----------
+const BIRD='<svg class="bird" viewBox="12 6 82 82"><path class="wb" d="M50 54 C 52 40, 60 27, 76 18 C 72 30, 66 42, 58 54 Z" fill="#c43c00"/><path d="M20 52 C 30 46, 44 46, 56 52 C 64 50, 72 46, 80 47 C 74 52, 70 56, 66 60 C 58 70, 44 74, 32 70 L 22 78 L 24 66 C 20 62, 18 57, 20 52 Z" fill="#ff4f00"/><path class="wf" d="M38 52 C 36 38, 40 26, 50 16 C 54 30, 56 42, 54 54 Z" fill="#ff7a33"/><path d="M79 46 L 88 47 L 79 50 Z" fill="#ffb43c"/><circle cx="72" cy="49.5" r="1.8" fill="#111214"/></svg>';
 function openMenu(){rWho();document.querySelectorAll('.mi[data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v===cur));$('dlayer').classList.add('open')}
 function closeMenu(){$('dlayer').classList.remove('open')}
 $('burger').onclick=openMenu;
 document.querySelector('.drawer').onclick=e=>{const b=e.target.closest('.mi[data-v]');if(b){closeMenu();setView(b.dataset.v)}};
-function rWho(){const p=S.profile;$('mAv').classList.toggle('e',!p);$('mAv').textContent=p?p.name.split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase():'?';
+function rWho(){const p=S.profile;$('mAv').classList.toggle('e',!p);if(p)$('mAv').textContent=p.name.split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();else $('mAv').innerHTML=BIRD;
   $('mName').textContent=p?p.name:'Not signed in';$('mSign').textContent=p?'Edit profile':'Sign in';$('mProfL').textContent=p?'Profile':'Sign in'}
 $('mSign').onclick=$('mProf').onclick=()=>{closeMenu();profile()};
 function profile(){const p=S.profile||{};let arm=false;
